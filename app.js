@@ -1,16 +1,23 @@
+require('dotenv').config();
 const express = require('express');
+const mongoose=require('mongoose');
 const app = express();
 const port = 3000;
+const userRouter=require('./routes/userRouter');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/users',userRouter);
 
-app.listen(port, (err) => {
+mongoose.connect(process.env.DB_CONNECTION_STRING).then(()=>
+    {
+        console.log("Connected to DB successfully");
+        app.listen(port, (err) => {
     if (err) {
         return console.log('Something bad happened', err);
     }
     console.log(`Server is listening on ${port}`);
-});
+})}).catch(err=>console.log("Error connecting to DB",err));
 
 
 
