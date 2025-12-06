@@ -4,10 +4,11 @@ const mongoose=require('mongoose');
 const app = express();
 const port = 3000;
 const userRouter=require('./routes/userRouter');
-
+const newsRouter=require('./routes/newsRouter');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/users',userRouter);
+app.use('',newsRouter);
 
 mongoose.connect(process.env.DB_CONNECTION_STRING).then(()=>
     {
