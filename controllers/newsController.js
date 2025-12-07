@@ -9,7 +9,6 @@ const getCategoryNews = async(req,res)=>{
     // Check if news data is present in Redis cache
     const cachedNews = await client.get(cacheKey);
     if(cachedNews){
-        console.log("Serving from cache");
         return res.status(200).send({
             news: JSON.parse(cachedNews)
         })
@@ -17,18 +16,12 @@ const getCategoryNews = async(req,res)=>{
     const user = await userModel.findOne({
         email: email
     });
-    let allcategories="";
-    user.preferences.forEach((preference)=>{
-        console.log(preference);
-        allcategories+=preference+","
-    })
-    let categories=allcategories.substring(0,allcategories.length-1);
+    let allcategories = user.preferences.map(preference => preference).join(',');
     try{
 
-        const news=await axios.get(`https://api.mediastack.com/v1/news?access_key=${process.env.NEWS_API_KEY}&categories=${categories}&countries=in,us`);
+        const news=await axios.get(`https://api.mediastack.com/v1/news?access_key=${process.env.NEWS_API_KEY}&categories=${allcategories}&countries=in,us`);
 
-        console.log(news.data);
-        if(!news){
+        if(!news.data){
             return res.status(400).send({
                 message: "Please look into selected categories"
             })
@@ -40,7 +33,6 @@ const getCategoryNews = async(req,res)=>{
         }
         )
     }catch(err){
-        console.log(err);
         return res.status(503).send({
             message: "Internal Server Error"
         })
@@ -50,11 +42,9 @@ const getCategoryNews = async(req,res)=>{
 
 const searchNews = async(req,res)=>{
     const { keyword } =req.params;
-    console.log(keyword);
     try{
         const news=await axios.get(`https://api.mediastack.com/v1/news?access_key=${process.env.NEWS_API_KEY}&keywords=${keyword}&countries=in,us`);        
-        console.log(news.data);
-        if(!news){
+        if(!news.data || news.data.data.length===0){
             return res.status(404).send({
                 message: "No News Found For Selected Keyword"
             })
@@ -64,7 +54,6 @@ const searchNews = async(req,res)=>{
         }
         )
     }catch(err){
-        console.log(err);
         return res.status(503).send({
             message: "Internal Server Error"
         })

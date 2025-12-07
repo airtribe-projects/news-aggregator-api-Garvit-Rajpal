@@ -4,10 +4,43 @@ const jwt = require("jsonwebtoken");
 const validCategories = ["general", "business", "entertainment", "health", "science", "sports", "technology"];
 const emailRegex = /^\S+@\S+\.\S+$/;
 
+
+const commonPasswords = new Set([
+  'password','123456','12345678','qwerty','abc123','password1','iloveyou','admin'
+]);
+
+const validatePassword = (password) => {
+  if (typeof password !== 'string') return 'Password must be a string';
+  if (password.length < 8) return 'Password must be at least 8 characters';
+  if (password.length > 128) return 'Password is too long';
+  if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
+  if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
+  if (!/[0-9]/.test(password)) return 'Password must contain at least one number';
+  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(password)) return 'Password must contain at least one special character';
+  if (/\s/.test(password)) return 'Password must not contain spaces';
+  if (commonPasswords.has(password.toLowerCase())) return 'Password is too common';
+  return null;
+};
+
+// add this helper
+const validatePreferences = (prefs, { required = false } = {}) => {
+  if (prefs === undefined || prefs === null) {
+    return required ? "Preferences are required" : null;
+  }
+  if (!Array.isArray(prefs)) {
+    return "Preferences must be an array of strings";
+  }
+  for (const p of prefs) {
+    if (typeof p !== "string" || !validCategories.includes(p)) {
+      return `Invalid preference category: ${p}`;
+    }
+  }
+  return null;
+};
+
 const registerUser = async (req, res) => {
   const { name, email, password, preferences } = req.body;
   if (!email || !name || !password) {
-    console.log("Invalid Inputs");
     return res.status(400).send({
       message: "Invalid Inputs",
     });
@@ -16,47 +49,32 @@ const registerUser = async (req, res) => {
   const testEmail=emailRegex.test(email);
   
   if(!testEmail){
-    console.log("Invalid Email Format");
     return res.status(400).send({
         message: "Invalid Email Format",
     })
   }
-  if(password.length<6){
-    console.log("Password must be at least 6 characters");
-    return res.status(400).send({
-        message: "Password must be at least 6 characters",
-    })
+  const pwdError = validatePassword(password);
+  if (pwdError) {
+    return res.status(400).send({ message: pwdError });
   }
-  if(preferences&&preferences.length>0){
+  const preferencesError = validatePreferences(preferences, { required: false });
+  if (preferencesError) {
+    return res.status(400).send({ message: preferencesError });
+  }
 
-      if(!Array.isArray(preferences)){
-        return res.status(400).send({
-          message: "Preferences must be an array of strings",
-        })
-      }
-      for(const preference of preferences){
-        if(!validCategories.includes(preference)||typeof preference !== 'string'){
-          return res.status(400).send({
-            message: `Invalid preference category: ${preference}`,
-          })
-        }
-    
-      }
-  }
   const user = await userModel.findOne({
     email: email,
   });
   if (user) {
-    console.log("User Already Exists. Please Login !!",user);
     return res.status(400).send({
       message: "User Already Exists. Please Login !!",
     });
   }
 
-  const hashedPassword = await bcrypt.hash(
-    password,
-    Number(process.env.SALT_ROUND) || 3
-  );
+  // hash with a safe default rounds
+  const saltRounds = Number(process.env.SALT_ROUND) || 10;
+  const salt = await bcrypt.genSalt(saltRounds);
+  const hashedPassword = await bcrypt.hash(password, salt);
   const newUser = {
     name: name,
     email: email,
@@ -81,7 +99,6 @@ const loginUser = async (req, res) => {
   const testEmail=emailRegex.test(email);
   
   if(!testEmail){
-    console.log("Invalid Email Format");
     return res.status(400).send({
         message: "Invalid Email Format",
     })
@@ -142,17 +159,9 @@ const updateUserPreferences = async(req,res)=>{
             message: "Internal Server Error"
         })
     }
-    if(!Array.isArray(preferences)){
-      return res.status(400).send({
-        message: "Preferences must be an array of strings",
-      })
-    }
-    for(const preference of preferences){
-      if(!validCategories.includes(preference)||typeof preference !== 'string'){
-        return res.status(400).send({
-          message: `Invalid preference category: ${preference}`,
-        })
-      }
+    const preferencesError = validatePreferences(preferences, { required: false });
+    if (preferencesError) {
+      return res.status(400).send({ message: preferencesError });
     }
      user.preferences= preferences;
      const updatedUser=await user.save();

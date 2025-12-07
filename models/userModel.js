@@ -2,22 +2,22 @@ const mongoose=require('mongoose');
 
 const usersSchema=mongoose.Schema({
     email:{
-        type: "String",
+        type: String,
         required: true,
         trim: true,
         unique: true
     },
     name:{
-        type: "String",
+        type: String,
         required: true,
         trim: true
     },
     password:{
-        type: "String",
+        type: String,
         required: true
     },
     preferences:[{
-        type: "String"
+        type: String
     }]
 })
 

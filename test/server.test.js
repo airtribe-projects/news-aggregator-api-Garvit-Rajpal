@@ -15,7 +15,7 @@ technology - Technology News
 */
 const mockUser = {
     name: 'Clark Kent',
-    email: 'clark2@superman.com',
+    email: 'clark11@superman.com',
     password: 'Krypt()n8',
     preferences:['business', 'technology']
 };
@@ -104,7 +104,7 @@ tap.test('GET /news without token', async (t) => {
     t.end();
 });
 
-tap.test('GET /news/seach/:keyword',async(t)=>{
+tap.test('GET /news/search/:keyword',async(t)=>{
     const response = await server.get('/news/search/corona').set('Authorization', `Bearer ${token}`);
     t.equal(response.status,200);
     t.hasOwnProp(response.body,'news');

@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const app = express();
 const port = process.env.PORT || 3000;
 const userRouter = require("./routes/userRouter");
+const { authMiddleware }=require("./middlewares/authMiddleware");
 const newsRouter = require("./routes/newsRouter");
 const {
   connectRedis
@@ -11,7 +12,7 @@ const {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/users", userRouter);
-app.use("", newsRouter);
+app.use("/news",authMiddleware, newsRouter);
 
 mongoose
   .connect(process.env.DB_CONNECTION_STRING)
