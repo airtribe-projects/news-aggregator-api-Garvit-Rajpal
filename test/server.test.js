@@ -2,12 +2,22 @@ const tap = require('tap');
 const supertest = require('supertest');
 const app = require('../app');
 const server = supertest(app);
+/*
+Avaialable News Categories for Mediastack API  
+general - Uncategorized News
+business - Business News
+entertainment - Entertainment News
+health - Health News
+science - Science News
+sports - Sports News
+technology - Technology News
 
+*/
 const mockUser = {
     name: 'Clark Kent',
-    email: 'clark@superman.com',
+    email: 'clark11@superman.com',
     password: 'Krypt()n8',
-    preferences:['movies', 'comics']
+    preferences:['business', 'technology']
 };
 
 let token = '';
@@ -67,7 +77,7 @@ tap.test('GET /users/preferences without token', async (t) => {
 
 tap.test('PUT /users/preferences', async (t) => {
     const response = await server.put('/users/preferences').set('Authorization', `Bearer ${token}`).send({
-        preferences: ['movies', 'comics', 'games']
+        preferences: ['business', 'technology']
     });
     t.equal(response.status, 200);
 });
@@ -75,7 +85,7 @@ tap.test('PUT /users/preferences', async (t) => {
 tap.test('Check PUT /users/preferences', async (t) => {
     const response = await server.get('/users/preferences').set('Authorization', `Bearer ${token}`);
     t.equal(response.status, 200);
-    t.same(response.body.preferences, ['movies', 'comics', 'games']);
+    t.same(response.body.preferences, ['business', 'technology']);
     t.end();
 });
 
@@ -93,6 +103,13 @@ tap.test('GET /news without token', async (t) => {
     t.equal(response.status, 401);
     t.end();
 });
+
+tap.test('GET /news/search/:keyword',async(t)=>{
+    const response = await server.get('/news/search/corona').set('Authorization', `Bearer ${token}`);
+    t.equal(response.status,200);
+    t.hasOwnProp(response.body,'news');
+    t.end();
+})
 
 
 
