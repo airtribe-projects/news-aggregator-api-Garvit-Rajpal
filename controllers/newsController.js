@@ -1,4 +1,3 @@
-require("dotenv").config();
 const axios = require("axios");
 const userModel = require("../models/userModel");
 const { client } = require("../services/redis-client/redis-client");
