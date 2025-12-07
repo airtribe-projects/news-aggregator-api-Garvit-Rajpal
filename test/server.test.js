@@ -2,10 +2,20 @@ const tap = require('tap');
 const supertest = require('supertest');
 const app = require('../app');
 const server = supertest(app);
+/*
+Avaialable News Categories for Mediastack API  
+general - Uncategorized News
+business - Business News
+entertainment - Entertainment News
+health - Health News
+science - Science News
+sports - Sports News
+technology - Technology News
 
+*/
 const mockUser = {
     name: 'Clark Kent',
-    email: 'clark@superman.com',
+    email: 'clark2@superman.com',
     password: 'Krypt()n8',
     preferences:['business', 'technology']
 };
@@ -93,6 +103,13 @@ tap.test('GET /news without token', async (t) => {
     t.equal(response.status, 401);
     t.end();
 });
+
+tap.test('GET /news/seach/:keyword',async(t)=>{
+    const response = await server.get('/news/search/corona').set('Authorization', `Bearer ${token}`);
+    t.equal(response.status,200);
+    t.hasOwnProp(response.body,'news');
+    t.end();
+})
 
 
 
